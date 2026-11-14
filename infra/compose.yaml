@@ -1,0 +1,86 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-9.5.6}
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-kibana}
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-9.5.6}
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-kibana_system}
+    ports:
+      - "127.0.0.1:5601:5601"
+    restart: unless-stopped
+
+  setup:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-kibana}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-kibana_system}
+      EDOT_PASSWORD: ${EDOT_PASSWORD:-edot_ingest}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        curl --retry 60 --retry-connrefused --retry-delay 2 --max-time 5 \
+          --fail --silent --show-error \
+          --user "elastic:$${ELASTIC_PASSWORD}" \
+          -X POST "http://elasticsearch:9200/_security/user/kibana_system/_password" \
+          -H "Content-Type: application/json" \
+          --data "{\"password\":\"$${KIBANA_SYSTEM_PASSWORD}\"}"
+        curl --fail --silent --show-error \
+          --user "elastic:$${ELASTIC_PASSWORD}" \
+          -X PUT "http://elasticsearch:9200/_security/role/edot_ingest" \
+          -H "Content-Type: application/json" \
+          --data '{"cluster":["monitor"],"indices":[{"names":["logs-*.otel-*","metrics-*.otel-*","traces-*.otel-*"],"privileges":["auto_configure","create_doc"]}]}'
+        curl --fail --silent --show-error \
+          --user "elastic:$${ELASTIC_PASSWORD}" \
+          -X PUT "http://elasticsearch:9200/_security/user/edot_ingest" \
+          -H "Content-Type: application/json" \
+          --data "{\"password\":\"$${EDOT_PASSWORD}\",\"roles\":[\"edot_ingest\"],\"enabled\":true}"
+    restart: "no"
+
+  edot-gateway:
+    image: docker.elastic.co/elastic-agent/elastic-agent:${ELASTIC_VERSION:-9.5.6}
+    entrypoint: ["/usr/bin/tini", "--", "/usr/share/elastic-agent/elastic-agent"]
+    command: ["otel", "--config=/etc/elastic-agent/gateway.yaml"]
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    environment:
+      ELASTIC_ENDPOINT: http://elasticsearch:9200
+      EDOT_USERNAME: edot_ingest
+      EDOT_PASSWORD: ${EDOT_PASSWORD:-edot_ingest}
+    volumes:
+      - ./edot-gateway.yaml:/etc/elastic-agent/gateway.yaml:ro
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:${OTEL_COLLECTOR_VERSION:-0.165.0}
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    depends_on:
+      - edot-gateway
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  elasticsearch-data:

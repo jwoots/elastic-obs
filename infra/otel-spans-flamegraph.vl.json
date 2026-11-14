@@ -1,0 +1,184 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Durée des spans de la trace correspondant au span_id saisi.",
+  "usermeta": {
+    "instructions": "Saisir le span_id dans le champ Span ID du graphique pour afficher sa trace. Pour relier une liste dans le même dashboard, filtrer sur trace_id depuis la liste. Ne pas filtrer sur span_id dans la barre KQL, car cela exclurait les autres spans de la trace. Choisir une plage de temps qui inclut la trace.",
+    "note": "La longueur de chaque barre représente la durée du span. La recherche porte sur les 5000 spans les plus récents de la plage de temps sélectionnée. Sans Span ID saisi, les filtres du dashboard s'appliquent directement."
+  },
+  "params": [
+    {
+      "name": "selectedSpanId",
+      "value": "",
+      "bind": {
+        "input": "text",
+        "name": "Span ID : "
+      }
+    }
+  ],
+  "data": {
+    "url": {
+      "%context%": true,
+      "%timefield%": "@timestamp",
+      "index": "traces-*.otel-*",
+      "body": {
+        "size": 5000,
+        "_source": true,
+        "sort": [
+          {
+            "@timestamp": {
+              "order": "desc"
+            }
+          }
+        ]
+      }
+    },
+    "format": {
+      "property": "hits.hits"
+    }
+  },
+  "transform": [
+    {
+      "calculate": "datum._source.trace_id",
+      "as": "trace_id"
+    },
+    {
+      "calculate": "datum._source.span_id",
+      "as": "span_id"
+    },
+    {
+      "calculate": "datum.span_id === selectedSpanId ? datum.trace_id : null",
+      "as": "selected_trace_id"
+    },
+    {
+      "joinaggregate": [
+        {
+          "op": "max",
+          "field": "selected_trace_id",
+          "as": "target_trace_id"
+        }
+      ]
+    },
+    {
+      "filter": "!selectedSpanId || (isValid(datum.target_trace_id) && datum.trace_id === datum.target_trace_id)"
+    },
+    {
+      "calculate": "datum._source.parent_span_id || ''",
+      "as": "parent_span_id"
+    },
+    {
+      "calculate": "datum._source.name || 'span sans nom'",
+      "as": "span_name"
+    },
+    {
+      "calculate": "datum._source.resource.attributes['service.name'] || 'service inconnu'",
+      "as": "service_name"
+    },
+    {
+      "calculate": "toDate(toNumber(datum._source['@timestamp']))",
+      "as": "start"
+    },
+    {
+      "calculate": "toNumber(datum._source['@timestamp'])",
+      "as": "timestamp_ms"
+    },
+    {
+      "calculate": "datum._source.duration / 1000000",
+      "as": "duration_ms"
+    },
+    {
+      "calculate": "toDate(datum.timestamp_ms + datum.duration_ms)",
+      "as": "end"
+    },
+    {
+      "calculate": "datum.span_name + ' [' + substring(datum.span_id, 0, 6) + ']'",
+      "as": "span_label"
+    },
+    {
+      "filter": "isValid(datum.span_id) && isValid(datum.start) && isValid(datum.end)"
+    }
+  ],
+  "mark": {
+    "type": "bar",
+    "size": 18,
+    "cornerRadius": 2
+  },
+  "encoding": {
+    "x": {
+      "field": "duration_ms",
+      "type": "quantitative",
+      "title": "Durée du span (ms)",
+      "axis": {
+        "format": ".3f"
+      }
+    },
+    "y": {
+      "field": "span_label",
+      "type": "ordinal",
+      "sort": {
+        "field": "duration_ms",
+        "order": "descending"
+      },
+      "axis": {
+        "title": "Span",
+        "labelLimit": 300
+      }
+    },
+    "color": {
+      "field": "service_name",
+      "type": "nominal",
+      "title": "Service"
+    },
+    "tooltip": [
+      {
+        "field": "span_name",
+        "type": "nominal",
+        "title": "Span"
+      },
+      {
+        "field": "service_name",
+        "type": "nominal",
+        "title": "Service"
+      },
+      {
+        "field": "span_id",
+        "type": "nominal",
+        "title": "Span ID"
+      },
+      {
+        "field": "parent_span_id",
+        "type": "nominal",
+        "title": "Parent span ID"
+      },
+      {
+        "field": "trace_id",
+        "type": "nominal",
+        "title": "Trace ID"
+      },
+      {
+        "field": "start",
+        "type": "temporal",
+        "title": "Début"
+      },
+      {
+        "field": "end",
+        "type": "temporal",
+        "title": "Fin"
+      },
+      {
+        "field": "duration_ms",
+        "type": "quantitative",
+        "title": "Durée (ms)",
+        "format": ".3f"
+      }
+    ]
+  },
+  "config": {
+    "axis": {
+      "labelFontSize": 11,
+      "titleFontSize": 12
+    },
+    "view": {
+      "stroke": null
+    }
+  }
+}

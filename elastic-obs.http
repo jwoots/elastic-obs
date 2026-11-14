@@ -1,0 +1,6 @@
+@elastic_obs_HostAddress = http://localhost:5111
+
+GET {{elastic_obs_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
