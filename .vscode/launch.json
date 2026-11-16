@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "elastic-obs (HTTP)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build elastic-obs",
+      "program": "${workspaceFolder}\\src\\elastic-obs\\bin\\Debug\\net10.0\\elastic-obs.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}\\src\\elastic-obs",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5111",
+        "OTEL_DOTNET_AUTO_HOME": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler",
+        "DOTNET_STARTUP_HOOKS": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\net\\OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        "CORECLR_PROFILER_PATH_64": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x64\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "CORECLR_PROFILER_PATH_32": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x86\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "OTEL_SERVICE_NAME": "elastic-obs",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc"
+      }
+    }
+  ]
+}

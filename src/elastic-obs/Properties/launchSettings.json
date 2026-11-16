@@ -8,6 +8,13 @@
       "applicationUrl": "http://localhost:5111",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_DOTNET_AUTO_HOME": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler",
+        "DOTNET_STARTUP_HOOKS": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\net\\OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        "CORECLR_PROFILER_PATH_64": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x64\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "CORECLR_PROFILER_PATH_32": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x86\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "OTEL_SERVICE_NAME": "elastic-obs",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc"
       }
@@ -19,6 +26,13 @@
       "applicationUrl": "https://localhost:7272;http://localhost:5111",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_DOTNET_AUTO_HOME": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler",
+        "DOTNET_STARTUP_HOOKS": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\net\\OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        "CORECLR_PROFILER_PATH_64": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x64\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "CORECLR_PROFILER_PATH_32": "C:\\Users\\joffrey\\Documents\\GIT\\bin\\otel-profiler\\win-x86\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "OTEL_SERVICE_NAME": "elastic-obs",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc"
       }
